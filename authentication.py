@@ -1,11 +1,12 @@
 import json
+import os
 import requests
+import sys
 import time
 
 
-tvdb_url = 'https://api-dev.thetvdb.com/'
+tvdb_url = 'https://api-beta.thetvdb.com/'
 headers = {'content-type': 'application/json'}
-
 
 def login_schema():
     '''Defines the login Schema for Refresh token.'''
@@ -36,16 +37,49 @@ def searchseries(seriesname):
     '''Searches for a series based on name, returns ID.'''
     searchurl = tvdb_url + 'search/series?name='
     search = requests.get(searchurl + seriesname, headers=auth_header)
-    return json.loads(search.text)['data'][1]['id']
+    seriesid = json.loads(search.text)['data'][0]['id']
+    return seriesid
 
+def episodename(seriesname, season, episode):
+    '''Returns String of Episode name.
 
-def getepisodes(seriesid):
-    '''Returns JSON episodes for series based on numeric ID.'''
-    seriesid = searchseries(seriesid)
-    episodesurl = tvdb_url + 'series/' + str(seriesid) + '/episodes'
+    Args:
+    Seriesname - Searches using searchseries() for SeriesID number
+    Season - AiredSeason number
+    Episode - AiredEpisode Number
+
+    Output:
+    String of the episode name.
+    '''
+    seriesid = searchseries(seriesname)
+    episodesurl = tvdb_url + 'series/' + str(seriesid) + '/episodes/query?' + \
+                  'airedSeason=' + season + '&airedEpisode=' + episode
     episodesjson = requests.get(episodesurl, headers=auth_header)
-    print(json.loads(episodesjson.text)['data'][0])
+    episodename = json.loads(episodesjson.text)['data'][0]['episodeName']
+    return episodename
+
+
+def findnamefromfile(inputfile):
+    '''Gets the series name, season and episode id from file name.
+
+    Input must be in the form of Series - Season XX - Episode XXX -.mp4.'''
+    episodeinfo = [x.strip() for x in inputfile.split('-')]
+    seriesname = episodeinfo[0]
+    seasonnumber = episodeinfo[1].strip('Season ')
+    episodenumber = episodeinfo[2].strip('Episode ')
+    return seriesname, seasonnumber, episodenumber
+
+
+def main():
+    for (dirpath, dirname, filenames) in os.walk(sys.argv[1]):
+        for filename in filenames:
+            originalpath = sys.argv[1] + '/'
+            originalfile = os.path.basename(filename)
+            seriesabridged = findnamefromfile(originalfile)
+            originalname, ext = os.path.splitext(originalfile)
+            episode =  episodename(seriesabridged[0], seriesabridged[1], seriesabridged[2])
+            os.rename(originalpath + filename, originalpath + originalname + ' ' + episode + str(ext))
 
 
 if __name__ == '__main__':
-    getepisodes("Red Dwarf")
+    main()
