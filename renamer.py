@@ -14,12 +14,14 @@ headers = {'content-type': 'application/json'}
 token = auth.AuthToken()
 auth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
 
+
 def searchseries(seriesname):
     '''Searches for a series based on name, returns ID.'''
     searchurl = tvdb_url + 'search/series?name='
     search = requests.get(searchurl + seriesname, headers=auth_header)
     seriesid = json.loads(search.text)['data'][0]['id']
     return seriesid
+
 
 def episodename(seriesname, season, episode):
     '''Returns String of Episode name.
@@ -33,6 +35,7 @@ def episodename(seriesname, season, episode):
     seriesid = searchseries(seriesname)
     episodesurl = tvdb_url + 'series/' + str(seriesid) + '/episodes/query?' + \
                   'airedSeason=' + season + '&airedEpisode=' + episode
+
     episodesjson = requests.get(episodesurl, headers=auth_header)
     episodename = json.loads(episodesjson.text)['data'][0]['episodeName']
     return episodename
