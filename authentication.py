@@ -16,7 +16,7 @@ class AuthToken:
     apikey = '4C2681B7D3922F1A'
     username = raw_input('TVDB.com Username:')
     if keyring.get_password('tvdbrenamer', username) is not None:
-      password =  keyring.get_password('tvdbrenamer', username)
+      password = keyring.get_password('tvdbrenamer', username)
     else:
       password = getpass.getpass('TVDB.com Password:')
       keyring.set_password('tvdbrenamer', username, password)
