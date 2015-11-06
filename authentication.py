@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import getpass
+import keyring
 import json
 import time
 import requests
@@ -10,12 +12,14 @@ class AuthToken:
 
   def login_schema(self):
     """Defines the login Schema for Refresh token."""
-    ##TODO Fix this, its awful and has my password.
     apikey = '4C2681B7D3922F1A'
-    username = None
-    password = None
-    return {'apikey': apikey, 'username': username, 'userpass': password}
-
+    username = raw_input('TVDB.com Username:')
+    if keyring.get_password('tvdbrenamer', username) is not None:
+      password =  keyring.get_password('tvdbrenamer', username)
+    else:
+      password = getpass.getpass('TVDB.com Password:')
+      keyring.set_password('tvdbrenamer', username, password)
+    return {'apikey': apikey, 'username': username, 'userpass': str(password)}
 
   def getrefreshtoken(self):
     """ Get a JWT token or refreshes if it exists and is less than an hour."""
