@@ -2,6 +2,7 @@
 
 import getpass
 import json
+import os
 import time
 
 import keyring
@@ -22,22 +23,32 @@ class AuthToken:
       keyring.set_password('tvdbrenamer', username, password)
     return {'apikey': apikey, 'username': username, 'userpass': str(password)}
 
+
   def getrefreshtoken(self):
     """Get a JWT token or refreshes if it exists and is less than an hour."""
     tvdb_url = 'https://api-beta.thetvdb.com/'
     headers = {'content-type': 'application/json'}
-    lastrefresh = None
-    if lastrefresh is None:
-      print 'Obtaining NEW token'
-      token = requests.post(tvdb_url + 'login',
-                            data=json.dumps(self.login_schema()),
-                            headers=headers)
-      lastrefresh = time.time()
-    elif lastrefresh < lastrefresh + 3600:
-      print 'Obtaining REFRESH Token'
-      token = requests.get(tvdb_url + 'login',
-                           data=json.dumps(self.login_schema()),
-                           headers=headers)
-      lastrefresh = time.time()
-    finaltoken = json.loads(token.text)
-    return finaltoken['token']
+    lastrefresh = 0
+    if os.path.isfile('.tvdbtoken.token') is True:
+      lastrefresh = os.path.getmtime('.tvdbtoken.token')
+    print lastrefresh
+    with open('.tvdbtoken.token', 'ab+') as tokenfile:
+      originaltoken = tokenfile.read().rstrip('\n')
+      print originaltoken
+      if lastrefresh is 0:
+        print 'Obtaining NEW token'
+        token = requests.post(tvdb_url + 'login',
+                              data=json.dumps(self.login_schema()),
+                              headers=headers)
+      elif lastrefresh <= lastrefresh + 3600:
+        auth_header = {'Authorization': 'Bearer ' + originaltoken}
+        print auth_header
+        print 'Obtaining REFRESH Token'
+        token = requests.get(tvdb_url + 'refresh_token', headers=auth_header)
+      finaltoken = json.loads(token.text)
+      print finaltoken
+      tokenfile.write(finaltoken['token'])
+    if 'Error' in finaltoken:
+      raise ValueError('Username or Password not found/incorrect')
+    else: 
+      return finaltoken['token']

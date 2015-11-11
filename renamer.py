@@ -19,6 +19,10 @@ def searchseries(seriesname):
   '''Searches for a series based on name, returns ID.'''
   searchurl = tvdb_url + 'search/series?name='
   search = requests.get(searchurl + seriesname, headers=auth_header)
+  if search.status_code == int(404):
+    raise ValueError('Episode or Season incorrect')
+  if search.status_code == int(401):
+    raise ValueError('Token expired or non-existant')
   seriesid = json.loads(search.text)['data'][0]['id']
   return seriesid
 
@@ -36,7 +40,12 @@ def episodename(seriesname, season, episode):
   episodesurl = tvdb_url + 'series/' + str(seriesid) + '/episodes/query?' + \
                 'airedSeason=' + season + '&airedEpisode=' + episode
   episodesjson = requests.get(episodesurl, headers=auth_header)
-  endepisodename = json.loads(episodesjson.text)['data'][0]['episodeName']
+  if episodesjson.status_code == int(404):
+    raise ValueError('Episode or Season incorrect')
+  if episodesjson.status_code == int(401):
+    raise ValueError('Token expired or non-existant')
+  else:
+    endepisodename = json.loads(episodesjson.text)['data'][0]['episodeName']
   return endepisodename
 
 
@@ -44,11 +53,12 @@ def findnamefromfile(inputfile):
   '''Gets the series name, season and episode id from file name.
   Input must be in the form of Series - SXX - EXXX -.mp4.
   '''
-  episodeinfo = [x.strip() for x in inputfile.split('-')]
+  episodeinfo = [x.strip() for x in inputfile.split(' - ')]
   seriesname = episodeinfo[0]
-  seasonepnumber = episodeinfo[1].strip('S')
+  seasoneplist = episodeinfo[1].split('-')[0]
+  seasonepnumber = seasoneplist.strip('S')
   seasonnumber = seasonepnumber.split('E')[0]
-  episodenumber = seasonepnumber.split('E')[1]
+  episodenumber = seasonepnumber.split('E')[1].rstrip()
   return seriesname, seasonnumber, episodenumber
 
 

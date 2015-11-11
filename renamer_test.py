@@ -40,5 +40,14 @@ class KnownValues(unittest.TestCase):
       self.assertEqual(episodename, result)
 
 
+class badinput(unittest.TestCase):
+  def noepinseason(self):
+    """episodename should return valueerror when the episode doesn't exist."""
+    self.assertRaises(renamer.NoEpInSeasonError, renamer.episodename, 'Red Dwarf', 01, 10)
+
+  def noseriesfound(self):
+    """searchseries should return valueerror when no series found."""
+    self.assertRaises(renamer.ValueError, renamer.searchseries, 'Rad Dwarf')
+
 if __name__ == '__main__':
   unittest.main()
