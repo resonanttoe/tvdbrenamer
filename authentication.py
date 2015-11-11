@@ -31,24 +31,37 @@ class AuthToken:
     lastrefresh = 0
     if os.path.isfile('.tvdbtoken.token') is True:
       lastrefresh = os.path.getmtime('.tvdbtoken.token')
-    print lastrefresh
-    with open('.tvdbtoken.token', 'ab+') as tokenfile:
-      originaltoken = tokenfile.read().rstrip('\n')
-      print originaltoken
-      if lastrefresh is 0:
+
+    if lastrefresh > 0 and lastrefresh < lastrefresh + 3600:
+      print 'REFRESH'
+      with open('.tvdbtoken.token', 'r') as tokenfile:
+        originaltoken = tokenfile.read().rstrip('\n')
+        auth_header = {'Authorization': 'Bearer ' + originaltoken}
+        print 'Obtaining REFRESH Token'
+        token = requests.get(tvdb_url + 'refresh_token', headers=auth_header)
+        finaltoken = json.loads(token.text)
+        os.utime('.tvdbtoken.token', (time.time(), time.time()))
+
+    if lastrefresh > lastrefresh + 3600:
+      print 'NEW No file'
+      with open('.tvdbtoken.token', 'r+') as tokenfile:
+        originaltoken = tokenfile.read().rstrip('\n')
         print 'Obtaining NEW token'
         token = requests.post(tvdb_url + 'login',
                               data=json.dumps(self.login_schema()),
                               headers=headers)
-      elif lastrefresh <= lastrefresh + 3600:
-        auth_header = {'Authorization': 'Bearer ' + originaltoken}
-        print auth_header
-        print 'Obtaining REFRESH Token'
-        token = requests.get(tvdb_url + 'refresh_token', headers=auth_header)
-      finaltoken = json.loads(token.text)
-      print finaltoken
-      tokenfile.write(finaltoken['token'])
-    if 'Error' in finaltoken:
-      raise ValueError('Username or Password not found/incorrect')
-    else: 
-      return finaltoken['token']
+        finaltoken = json.loads(token.text)
+        tokenfile.write(finaltoken['token'])
+
+    if os.path.isfile('.tvdbtoken.token') is False:
+      print 'NEW FILE'
+      with open('.tvdbtoken.token', 'w+') as tokenfile:
+        originaltoken = tokenfile.read().rstrip('\n')
+        print 'Obtaining NEW token and writing to file'
+        token = requests.post(tvdb_url + 'login',
+                              data=json.dumps(self.login_schema()),
+                              headers=headers)
+        finaltoken = json.loads(token.text)
+        tokenfile.write(finaltoken['token'])
+
+    return finaltoken['token']
