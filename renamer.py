@@ -2,12 +2,23 @@
 
 import json
 import os
-import requests
 import sys
 import time
 
 import authentication as auth
+import requests
 
+
+class EpNotFoundError(ValueError):
+  pass
+
+
+class TokenInvalidError(ValueError):
+  pass
+
+
+class SeriesNotFoundError(ValueError):
+  pass
 
 tvdb_url = 'https://api-beta.thetvdb.com/'
 headers = {'content-type': 'application/json'}
@@ -16,43 +27,53 @@ auth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
 
 
 def searchseries(seriesname):
-  '''Searches for a series based on name, returns ID.'''
+  """Searches for a series based on name, returns ID."""
   searchurl = tvdb_url + 'search/series?name='
   search = requests.get(searchurl + seriesname, headers=auth_header)
   if search.status_code == int(404):
-    raise ValueError('Episode or Season incorrect')
+    raise SeriesNotFoundError('Series Name "%s" incorrect' % seriesname)
   if search.status_code == int(401):
-    raise ValueError('Token expired or non-existant')
-  seriesid = json.loads(search.text)['data'][0]['id']
+    raise TokenInvalidError('Token expired or non-existant')
+  else:
+    seriesid = json.loads(search.text)['data'][0]['id']
   return seriesid
 
 
 def episodename(seriesname, season, episode):
-  '''Returns String of Episode name.
+  """Returns String of Episode name.
+
   Args:
-  Seriesname - Searches using searchseries() for SeriesID number
-  Season - AiredSeason number
-  Episode - AiredEpisode Number
-  Output:
-  String of the episode name.
-  '''
+    seriesname: Searches using searchseries() for SeriesID number
+    season:  AiredSeason number
+    episode:  AiredEpisode Number
+  Returns:
+    endepisodename: String of the episode name.
+
+  Raises:
+    EpNotFoundError: if status code is 404
+    TokenInvalidError: if status code is 401
+  """
   seriesid = searchseries(seriesname)
   episodesurl = tvdb_url + 'series/' + str(seriesid) + '/episodes/query?' + \
                 'airedSeason=' + season + '&airedEpisode=' + episode
   episodesjson = requests.get(episodesurl, headers=auth_header)
   if episodesjson.status_code == int(404):
-    raise ValueError('Episode or Season incorrect')
+    raise EpNotFoundError('Episode or Season incorrect')
   if episodesjson.status_code == int(401):
-    raise ValueError('Token expired or non-existant')
+    raise TokenInvalidError('Token expired or non-existant')
   else:
     endepisodename = json.loads(episodesjson.text)['data'][0]['episodeName']
   return endepisodename
 
 
 def findnamefromfile(inputfile):
-  '''Gets the series name, season and episode id from file name.
-  Input must be in the form of Series - SXX - EXXX -.mp4.
-  '''
+  """Gets the series name, season and episode id from file name.
+
+  Args:
+    inputfile: Input must be in the form of Series - SXX - EXXX -.mp4.
+  Returns:
+    Tuple of TV show name, Season number and episode number.
+  """
   episodeinfo = [x.strip() for x in inputfile.split(' - ')]
   seriesname = episodeinfo[0]
   seasoneplist = episodeinfo[1].split('-')[0]
@@ -72,8 +93,8 @@ def main():
         originalfile = os.path.basename(filename)
         seriesabridged = findnamefromfile(originalfile)
         originalname, ext = os.path.splitext(originalfile)
-        episode =  episodename(seriesabridged[0], seriesabridged[1],
-                               seriesabridged[2])
+        episode = episodename(seriesabridged[0], seriesabridged[1],
+                              seriesabridged[2])
         print 'Renaming to - ', originalname + ' ' + episode + str(ext)
         os.rename(originalpath + filename, originalpath + originalname + ' '
                   + episode + str(ext))
@@ -83,4 +104,3 @@ def main():
 
 if __name__ == '__main__':
   main()
->>>>>>> f13141f09ef3fd5f104055d646e74b4066135d4a

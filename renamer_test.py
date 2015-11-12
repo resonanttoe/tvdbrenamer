@@ -18,8 +18,7 @@ class KnownValues(unittest.TestCase):
   goodfilenames = ((('Pokemon', '01', '01'), u'Pok\xe9mon! I Choose You!'),
                    (('Red Dwarf', '08', '03'), 'Back in the Red (3)'),
                    (('Black Books', '03', '02'), 'Elephants and Hens'))
-
-
+  
   def test_seriesid(self):
     """seriesid should return good values from search."""
     for seriesid, seriesname in self.goodseriesid:
@@ -32,7 +31,6 @@ class KnownValues(unittest.TestCase):
       result = renamer.findnamefromfile(filename)
       self.assertEqual(fileids, result)
 
-
   def test_episodename(self):
     """episodename should return known values for episode from filename."""
     for fileids, episodename in self.goodfilenames:
@@ -40,14 +38,17 @@ class KnownValues(unittest.TestCase):
       self.assertEqual(episodename, result)
 
 
-class badinput(unittest.TestCase):
-  def noepinseason(self):
-    """episodename should return valueerror when the episode doesn't exist."""
-    self.assertRaises(renamer.NoEpInSeasonError, renamer.episodename, 'Red Dwarf', 01, 10)
+class BadInput(unittest.TestCase):
 
-  def noseriesfound(self):
+  def no_ep_in_season(self):
+    """episodename should return valueerror when the episode doesn't exist."""
+    with self.assertRaises(renamer.EpNotFoundError):
+      renamer.episodename('Red Dwarf', 01, 10)
+
+  def no_series_found(self):
     """searchseries should return valueerror when no series found."""
-    self.assertRaises(renamer.ValueError, renamer.searchseries, 'Rad Dwarf')
+    with self.assertRaises(renamer.SeriesNotFoundError):
+      renamer.searchseries('Rad Dwarf')
 
 if __name__ == '__main__':
   unittest.main()
