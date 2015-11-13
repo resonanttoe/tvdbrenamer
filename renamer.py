@@ -21,15 +21,31 @@ class SeriesNotFoundError(ValueError):
   pass
 
 tvdb_url = 'https://api-beta.thetvdb.com/'
-headers = {'content-type': 'application/json'}
-token = auth.AuthToken()
-auth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
+tvdbheaders = {'content-type': 'application/json'}
+token = auth.TvdbAuthToken()
+tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
+
+def wwesearchseries(seriesname):
+	"""Searchs TMDB for the WWE series name, returns ID value."""
+	searchurl = auth.moviedburl
+	search = requests.get(searchurl + "?query=" + seriesname, headers=auth.MovieDBAuthToken.headers)
+	seriesid = json.loads(search.text)['results'][0]['id']
+	return seriesid
+
+def findseasonnumber(seriesid, year):
+	searchurl = 'http://api.themoviedb.org/3/tv/' + seriesid + '?api_key=' + auth.MovieDBAuthToken.apikey
+	showlist = requests.get(searchurl, headers=auth.MovieDBAuthToken.headers)
+	showlist = json.loads(search.text)['seasons']
+	for elem in showlist:
+		if elem['air_date'] == year:
+			return elem['season_number'], elem['id']
+
 
 
 def searchseries(seriesname):
   """Searches for a series based on name, returns ID."""
   searchurl = tvdb_url + 'search/series?name='
-  search = requests.get(searchurl + seriesname, headers=auth_header)
+  search = requests.get(searchurl + seriesname, headers=tvdbauth_header)
   if search.status_code == int(404):
     raise SeriesNotFoundError('Series Name "%s" incorrect' % seriesname)
   if search.status_code == int(401):
@@ -56,7 +72,7 @@ def episodename(seriesname, season, episode):
   seriesid = searchseries(seriesname)
   episodesurl = tvdb_url + 'series/' + str(seriesid) + '/episodes/query?' + \
                 'airedSeason=' + season + '&airedEpisode=' + episode
-  episodesjson = requests.get(episodesurl, headers=auth_header)
+  episodesjson = requests.get(episodesurl, headers=tvdbauth_header)
   if episodesjson.status_code == int(404):
     raise EpNotFoundError('Episode or Season incorrect')
   if episodesjson.status_code == int(401):

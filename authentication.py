@@ -8,8 +8,14 @@ import time
 import keyring
 import requests
 
+class MovieDBAuthToken(object):
+  """Defines login schema and headers"""
+  apikey = '27d2f43a458ceac2a5aebaef45338a48'
+  header = {'Accept' : 'application/json'}
+  moviedbURL = 'https://api.themoviedb.org/3/search/tv?api_key=' + apikey
+  
 
-class AuthToken:
+class TvdbAuthToken(object):
   """Defines login schema and retrieves login/refresh token."""
 
   def login_schema(self):
