@@ -63,6 +63,8 @@ def episodename(seriesname, season, episode):
     raise TokenInvalidError('Token expired or non-existant')
   else:
     endepisodename = json.loads(episodesjson.text)['data'][0]['episodeName']
+  if '/' in episodename:
+    episodename = episodename.replace('/', '-')  
   return endepisodename
 
 
