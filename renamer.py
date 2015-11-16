@@ -24,22 +24,45 @@ tvdb_url = 'https://api-beta.thetvdb.com/'
 tvdbheaders = {'content-type': 'application/json'}
 token = auth.TvdbAuthToken()
 tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
+tmdbapistring = '?api_key=' + auth.MovieDBAuthToken.apikey
+
+
+def wwecontroller(inputfile):
+	serieslist = inputfile.split('.')
+	seriesname = serieslist[0] + ' ' + serieslist[1]
+	date = serieslist[2] + '-' + serieslist[3] + '-' + serieslist[4]
+	seriesid = wwesearchseries(seriesname)
+	seasonnumber = findseasonnumber(seriesid, serieslist[2])
+	episodenumber = matchdateinseason(seriesid, seasonnumber, date)
+	return seriesname, seasonnumber, episodenumber, date
 
 def wwesearchseries(seriesname):
 	"""Searchs TMDB for the WWE series name, returns ID value."""
+
 	searchurl = auth.moviedburl
 	search = requests.get(searchurl + "?query=" + seriesname, headers=auth.MovieDBAuthToken.headers)
 	seriesid = json.loads(search.text)['results'][0]['id']
 	return seriesid
 
+
 def findseasonnumber(seriesid, year):
-	searchurl = 'http://api.themoviedb.org/3/tv/' + seriesid + '?api_key=' + auth.MovieDBAuthToken.apikey
+	"""Fetches the JSON show overview from TMDB, searchs for a year match and returns season."""
+	searchurl = 'http://api.themoviedb.org/3/tv/' + seriesid + tmdbapistring
 	showlist = requests.get(searchurl, headers=auth.MovieDBAuthToken.headers)
 	showlist = json.loads(search.text)['seasons']
 	for elem in showlist:
-		if elem['air_date'] == year:
-			return elem['season_number'], elem['id']
+		if int(elem['air_date'].split('-')[0]) == int(year):
+			return elem['season_number']
 
+
+def matchdateinseason(seriesid, season_number, date):
+	"""Using the season number, match the details of the episode."""
+	searchurl = 'http://api.themoviedb.org/3/tv/' + seriesid + '/season' + season_number + tmdbapistringikey
+	seasoninfo = requests.get(searchurl, headers=auth.MovieDBAuthToken.headers)
+	seasonjson = json.loads(seasoninfo.text)
+	for elem in seasonjson['episodes']:
+		if str(elem['air_date']) == str(date):
+			return elem['episode_number']
 
 
 def searchseries(seriesname):
@@ -107,8 +130,12 @@ def main():
       if filename.endswith('- .mp4'):
         originalpath = sys.argv[1] + '/'
         originalfile = os.path.basename(filename)
-        seriesabridged = findnamefromfile(originalfile)
         originalname, ext = os.path.splitext(originalfile)
+        if originalname.starswith("WWE") is True:
+        	renamed = wwecontroller(inputfile)
+      		print 'Renaming to -', renamed[0] + 'S' + renamed[1] + 'E' + renamed[2] + ' - ' + renamed[3]
+#      		os.rename(originalpath + filename, originalpath + renamed + str(ext))
+        seriesabridged = findnamefromfile(originalfile)
         episode = episodename(seriesabridged[0], seriesabridged[1],
                               seriesabridged[2])
         print 'Renaming to - ', originalname + ' ' + episode + str(ext)
