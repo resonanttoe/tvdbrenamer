@@ -13,7 +13,7 @@ class MovieDBAuthToken(object):
   apikey = '27d2f43a458ceac2a5aebaef45338a48'
   header = {'Accept' : 'application/json'}
   moviedbURL = 'https://api.themoviedb.org/3/search/tv?api_key=' + apikey
-  
+
 
 class TvdbAuthToken(object):
   """Defines login schema and retrieves login/refresh token."""
