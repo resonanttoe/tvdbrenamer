@@ -8,6 +8,11 @@ import time
 import keyring
 import requests
 
+class OMDBapi(object):
+  """Defines schema of www.omdbapi.com."""
+  searchurl = 'https://www.omdbapi.com/?'
+
+
 class MovieDBAuthToken(object):
   """Defines login schema and headers"""
   apikey = '27d2f43a458ceac2a5aebaef45338a48'

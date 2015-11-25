@@ -4,7 +4,6 @@ import datetime
 import json
 import os
 import sys
-import time
 
 import authentication as auth
 import requests
@@ -21,14 +20,16 @@ class TokenInvalidError(ValueError):
 class SeriesNotFoundError(ValueError):
   pass
 
-tvdb_url = 'https://api-beta.thetvdb.com/'
-tvdbheaders = {'content-type': 'application/json'}
-token = auth.TvdbAuthToken()
-tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
+
+class TVDBAuth(object):
+  tvdb_url = 'https://api-beta.thetvdb.com/'
+  tvdbheaders = {'content-type': 'application/json'}
+  token = auth.TvdbAuthToken()
+  tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
 
 
 class WWE(object):
-  """ WWE will query TMDB for Episode info.
+  """WWE will query TMDB for Episode info.
 
       Takes input in the form of WWE.<Showname>.<Year>.<Month>.<Day>.<JUNK>
       and return season episode and date.
@@ -36,22 +37,23 @@ class WWE(object):
   tmdbapistring = '?api_key=' + auth.MovieDBAuthToken.apikey
 
   def wwecontroller(self, inputfile):
+    """Controller function for WWE Filenames."""
     if len(inputfile.split(' - ')) == 3:
       serieslist = inputfile.split(' - ')
       indate = serieslist[2]
       seriesname = serieslist[0]
-    else:  
+    else:
       serieslist = inputfile.split('.')
       indate = serieslist[4] + '-' + serieslist[3] + '-' + serieslist[2]
       seriesname = serieslist[0] + ' ' + serieslist[1]
     reversedate = '-'.join(indate.split('-')[::-1])
     seriesid = self.wwesearchseries(seriesname)
     seasonnumber = str(self.findseasonnumber( \
-                      seriesid, reversedate.split('-')[0])).zfill(2)
+        seriesid, reversedate.split('-')[0])).zfill(2)
     episodenumber = str(self.matchdateinseason( \
         seriesid, seasonnumber, reversedate)[0]).zfill(2)
     outdate = str(self.matchdateinseason( \
-                  seriesid, seasonnumber, reversedate)[1])
+        seriesid, seasonnumber, reversedate)[1])
     return seriesname, seasonnumber, episodenumber, outdate
 
   def wwesearchseries(self, seriesname):
@@ -80,11 +82,12 @@ class WWE(object):
     seasoninfo = requests.get(searchurl, headers=auth.MovieDBAuthToken.header)
     seasonjson = json.loads(seasoninfo.text)
     indate = datetime.datetime.strptime(indate, '%Y-%m-%d')
-    mindatecushion = indate - datetime.timedelta(days=2)
-    maxdatecushion = indate + datetime.timedelta(days=2)
+    mindatecush = indate - datetime.timedelta(days=2)
+    maxdatecush = indate + datetime.timedelta(days=2)
     for elem in seasonjson['episodes']:
-      if mindatecushion <= datetime.datetime.strptime(elem['air_date'], '%Y-%m-%d') <= maxdatecushion:
+      if mindatecush <= datetime.datetime.strptime(elem['air_date'], '%Y-%m-%d') <= maxdatecush:
         return elem['episode_number'], elem['air_date']
+
 
 class TvShow(object):
   """TvShow class queries TVDB.com for Show info.
@@ -95,8 +98,9 @@ class TvShow(object):
 
   def searchseries(self, seriesname):
     """Searches for a series based on name, returns ID."""
-    searchurl = tvdb_url + 'search/series?name='
-    search = requests.get(searchurl + seriesname, headers=tvdbauth_header)
+    searchurl = TVDBAuth.tvdb_url + 'search/series?name='
+    search = requests.get(searchurl + seriesname,
+                          headers=TVDBAuth.tvdbauth_header)
     if search.status_code == int(404):
       raise SeriesNotFoundError('Series Name "%s" incorrect' % seriesname)
     if search.status_code == int(401):
@@ -104,7 +108,6 @@ class TvShow(object):
     else:
       seriesid = json.loads(search.text)['data'][0]['id']
     return seriesid
-
 
   def episodename(self, seriesname, season, episode):
     """Returns String of Episode name.
@@ -121,9 +124,11 @@ class TvShow(object):
       TokenInvalidError: if status code is 401
     """
     seriesid = self.searchseries(seriesname)
-    episodesurl = tvdb_url + 'series/' + str(seriesid) + '/episodes/query?' + \
-                  'airedSeason=' + season + '&airedEpisode=' + episode
-    episodesjson = requests.get(episodesurl, headers=tvdbauth_header)
+    episodesurl = TVDBAuth.tvdb_url + 'series/' + str(seriesid) + \
+                  '/episodes/query?' + 'airedSeason=' + season + \
+                  '&airedEpisode=' + episode
+    episodesjson = requests.get(episodesurl,
+                                headers=TVDBAuth.tvdbauth_header)
     if episodesjson.status_code == int(404):
       raise EpNotFoundError('Episode or Season incorrect')
     if episodesjson.status_code == int(401):
@@ -131,7 +136,6 @@ class TvShow(object):
     else:
       endepisodename = json.loads(episodesjson.text)['data'][0]['episodeName']
     return endepisodename
-
 
   def findnamefromfile(self, inputfile):
     """Gets the series name, season and episode id from file name.
@@ -167,8 +171,8 @@ def main():
         print 'Renaming to -', finalname
     #    os.rename(originalpath + filename, originalpath + finalname + str(ext))
       elif filename.endswith('- .mp4'):
-        seriesabridged = findnamefromfile(originalfile)
-        episode = episodename(seriesabridged[0], seriesabridged[1],
+        seriesabridged = TvShow.findnamefromfile(originalfile)
+        episode = TvShow.episodename(seriesabridged[0], seriesabridged[1],
                               seriesabridged[2])
         print 'Renaming to - ', originalname + ' ' + episode + str(ext)
         os.rename(originalpath + filename, originalpath + originalname + ' '
