@@ -9,9 +9,9 @@ import keyring
 import requests
 
 
-class AuthToken:
+class TvdbAuthToken(object):
   """Defines login schema and retrieves login/refresh token."""
-
+  
   def login_schema(self):
     """Defines the login Schema for Refresh token."""
     apikey = '4C2681B7D3922F1A'
@@ -31,7 +31,6 @@ class AuthToken:
     lastrefresh = 0
     if os.path.isfile('.tvdbtoken.token') is True:
       lastrefresh = os.path.getmtime('.tvdbtoken.token')
-
     if lastrefresh > 0 and lastrefresh < lastrefresh + 3600:
       print 'REFRESH'
       with open('.tvdbtoken.token', 'r') as tokenfile:
@@ -40,6 +39,8 @@ class AuthToken:
         print 'Obtaining REFRESH Token'
         token = requests.get(tvdb_url + 'refresh_token', headers=auth_header)
         finaltoken = json.loads(token.text)
+      with open('.tvdbtoken.token', 'w') as tokenfile:
+        tokenfile.write(finaltoken['token'])
         os.utime('.tvdbtoken.token', (time.time(), time.time()))
 
     if lastrefresh > lastrefresh + 3600:
