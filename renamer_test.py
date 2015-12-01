@@ -4,7 +4,7 @@ import unittest
 
 import renamer
 
-TvShow = renamer.TvShow()
+tvshow = renamer.TvShow()
 
 class KnownValues(unittest.TestCase):
 
@@ -23,33 +23,38 @@ class KnownValues(unittest.TestCase):
   def test_seriesid(self):
     """seriesid should return good values from search."""
     for seriesid, seriesname in self.goodseriesid:
-      result = TvShow.searchseries(seriesname)
+      result = tvshow.searchseries(seriesname)
       self.assertEqual(seriesid, result)
 
   def test_findnamefromfile(self):
     """Should return Series name, Season and episode numbers."""
     for filename, fileids in self.goodids:
-      result = TvShow.findnamefromfile(filename)
+      result = tvshow.findnamefromfile(filename)
       self.assertEqual(fileids, result)
 
   def test_episodename(self):
     """episodename should return known values for episode from filename."""
     for fileids, episodename in self.goodfilenames:
-      result = TvShow.episodename(fileids[0], fileids[1], fileids[2])
+      result = tvshow.episodename(fileids[0], fileids[1], fileids[2])
       self.assertEqual(episodename, result)
+
+  def empty_episode(self):
+    """episodename should do nothing if empty."""
+    result = tvshow.episodename(fileids[0])
+    self.assertEqual(None, result)
 
 
 class BadInput(unittest.TestCase):
 
   def no_ep_in_season(self):
     """episodename should return valueerror when the episode doesn't exist."""
-    with self.assertRaises(renamer.TvShow.EpNotFoundError):
-      TvShow.episodename('Red Dwarf', 01, 10)
+    with self.assertRaises(tvshow.EpNotFoundError):
+      tvshow.episodename('Red Dwarf', 01, 10)
 
   def no_series_found(self):
     """searchseries should return valueerror when no series found."""
-    with self.assertRaises(renamer.TvShow.SeriesNotFoundError):
-      TvShow.searchseries('Rad Dwarf')
+    with self.assertRaises(tvshow.SeriesNotFoundError):
+      tvshow.searchseries('Rad Dwarf')
 
 if __name__ == '__main__':
   unittest.main()

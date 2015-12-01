@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import time
+import warnings
 
 import authentication as auth
 import requests
@@ -41,7 +42,8 @@ class TvShow(object):
     search = requests.get(searchurl + seriesname,
                           headers=TVDBAuth.tvdbauth_header)
     if search.status_code == int(404):
-      raise SeriesNotFoundError('Series Name "%s" incorrect' % seriesname)
+      warnings.warn('Series Name "%s" incorrect' % seriesname, UserWarning)
+      return None
     if search.status_code == int(401):
       raise TokenInvalidError('Token expired or non-existant')
     else:
@@ -69,12 +71,13 @@ class TvShow(object):
     episodesjson = requests.get(episodesurl,
                                 headers=TVDBAuth.tvdbauth_header)
     if episodesjson.status_code == int(404):
-      raise EpNotFoundError('Episode or Season incorrect')
+      warnings.warn('Series Name "%s" incorrect' % seriesname)
+      return None
     if episodesjson.status_code == int(401):
       raise TokenInvalidError('Token expired or non-existant')
     else:
       endepisodename = json.loads(episodesjson.text)['data'][0]['episodeName']
-    return endepisodename
+      return endepisodename
 
   def findnamefromfile(self, inputfile):
     """Gets the series name, season and episode id from file name.
@@ -102,16 +105,16 @@ def main():
       originalfile = os.path.basename(filename)
       originalname, ext = os.path.splitext(originalfile)
       if filename.endswith('- .mp4'):
-        seriesabridged = TvShow.findnamefromfile(originalfile)
-        episode = TvShow.episodename(seriesabridged[0], seriesabridged[1],
-                                     seriesabridged[2])
-        print 'Renaming to - ', originalname + ' ' + episode + str(ext)
-        os.rename(originalpath + filename, originalpath + originalname + ' '
-                  + episode + str(ext))
-      else:
-        pass
-
+        tvshows = TvShow()
+        seriesabridged = tvshows.findnamefromfile(originalfile)
+        episode = tvshows.episodename(seriesabridged[0], seriesabridged[1],
+                                      seriesabridged[2])
+        if episode == None:
+          print 'Error found'
+        else:
+          print 'Renaming to - ', originalname + ' ' + episode + str(ext)
+          os.rename(originalpath + filename, originalpath + originalname + ' '
+                    + episode + str(ext))
 
 if __name__ == '__main__':
   main()
-
