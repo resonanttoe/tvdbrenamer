@@ -3,7 +3,6 @@
 import json
 import os
 import sys
-import time
 import warnings
 
 import authentication as auth
@@ -109,7 +108,7 @@ def main():
         seriesabridged = tvshows.findnamefromfile(originalfile)
         episode = tvshows.episodename(seriesabridged[0], seriesabridged[1],
                                       seriesabridged[2])
-        if episode == None:
+        if episode is None:
           print 'Error found'
         else:
           print 'Renaming to - ', originalname + ' ' + episode + str(ext)
