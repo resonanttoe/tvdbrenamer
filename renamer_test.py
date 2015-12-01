@@ -46,15 +46,15 @@ class KnownValues(unittest.TestCase):
 
 class BadInput(unittest.TestCase):
 
-  def no_ep_in_season(self):
-    """episodename should return valueerror when the episode doesn't exist."""
-    with self.assertRaises(tvshow.EpNotFoundError):
-      tvshow.episodename('Red Dwarf', 01, 10)
-
-  def no_series_found(self):
-    """searchseries should return valueerror when no series found."""
-    with self.assertRaises(tvshow.SeriesNotFoundError):
-      tvshow.searchseries('Rad Dwarf')
+  def test_no_ep_in_season(self):
+    """episodename should return None when the episode doesn't exist."""
+    result = tvshow.episodename('Red Dwarf', '01', '10')
+    self.assertIsNone(result)
+    
+  def test_no_series_found(self):
+    """searchseries should return None when no series found."""
+    result = tvshow.searchseries('Rad Dwarf')
+    self.assertIsNone(result)
 
 if __name__ == '__main__':
   unittest.main()

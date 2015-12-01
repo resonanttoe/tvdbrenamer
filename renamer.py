@@ -3,7 +3,6 @@
 import json
 import os
 import sys
-import warnings
 
 import authentication as auth
 import requests
@@ -41,7 +40,7 @@ class TvShow(object):
     search = requests.get(searchurl + seriesname,
                           headers=TVDBAuth.tvdbauth_header)
     if search.status_code == int(404):
-      warnings.warn('Series Name "%s" incorrect' % seriesname, UserWarning)
+      print 'Series Name "%s" incorrect' % seriesname
       return None
     if search.status_code == int(401):
       raise TokenInvalidError('Token expired or non-existant')
@@ -70,7 +69,7 @@ class TvShow(object):
     episodesjson = requests.get(episodesurl,
                                 headers=TVDBAuth.tvdbauth_header)
     if episodesjson.status_code == int(404):
-      warnings.warn('Series Name "%s" incorrect' % seriesname)
+      print 'No Episode found for %s' % seriesname, season, episode
       return None
     if episodesjson.status_code == int(401):
       raise TokenInvalidError('Token expired or non-existant')
