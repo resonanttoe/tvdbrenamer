@@ -29,7 +29,6 @@ class TVDBAuth(object):
 
 class TvShow(object):
   """TvShow class queries TVDB.com for Show info.
-
   Input:
     <Tvshow> - SxxExx -.mp4
   """
@@ -50,14 +49,12 @@ class TvShow(object):
 
   def episodename(self, seriesname, season, episode):
     """Returns String of Episode name.
-
     Args:
       seriesname: Searches using searchseries() for SeriesID number
       season:  AiredSeason number
       episode:  AiredEpisode Number
     Returns:
       endepisodename: String of the episode name.
-
     Raises:
       EpNotFoundError: if status code is 404
       TokenInvalidError: if status code is 401
@@ -79,7 +76,6 @@ class TvShow(object):
 
   def findnamefromfile(self, inputfile):
     """Gets the series name, season and episode id from file name.
-
     Args:
       inputfile: Input must be in the form of Series - SXX - EXXX -.mp4.
     Returns:
@@ -111,7 +107,7 @@ def main():
           print 'Error found'
         else:
           print 'Renaming to - ', originalname + ' ' + episode + str(ext)
-          os.rename(originalpath + filename, originalpath + originalname + ' '
+          os.rename(originalpath + filename, originalpath + originalname
                     + episode + str(ext))
 
 if __name__ == '__main__':

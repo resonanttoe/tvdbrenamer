@@ -74,17 +74,17 @@ class BadInput(unittest.TestCase):
       result = tvshow.episodename(show, season, episode)
       self.assertEqual(None, result)
 
+
 class testauthtokens(unittest.TestCase):
 
-  @patch.object('renamer.requests.get')
-  def test_invalid_token(self, mock_get):
+  mock = mock.Mock()
+
+  def test_invalid_token(self):
     """Tests the return value of 401 for missing token."""
-    mock_response = mock.Mock()
-    mock_response.status_code.return_value = 401
     
-      
-
-
+    mock.tvshow.episodename.return_value = 401
+    result = tvshow.episodename('Red Dwarf')
+    self.assertRaises(ValueError, result)
 
 
 if __name__ == '__main__':
