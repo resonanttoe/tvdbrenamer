@@ -33,6 +33,25 @@ class TvShow(object):
     <Tvshow> - SxxExx -.mp4
   """
 
+  def editcontroller(self, filename):
+    """Controller for files that match Title - SxxExx -.mp4 file name."""
+    originalpath = sys.argv[1] + '/'
+    originalfile = os.path.basename(filename)
+    originalname, ext = os.path.splitext(originalfile)
+    seriesabridged = self.findnamefromfile(originalfile)
+    episode = self.episodename(seriesabridged[0], seriesabridged[1],
+                               seriesabridged[2])
+    if episode is None:
+      print 'Error found'
+    else:
+      print 'Renaming to - ', originalname + ' ' + episode + str(ext)
+      os.rename(originalpath + filename, originalpath + originalname
+                + episode + str(ext))
+
+  def dotcontroller(self, filename):
+    """Controller for files that match Title.SxxExx.Junk.mp4 file name."""
+    pass
+
   def searchseries(self, seriesname):
     """Searches for a series based on name, returns ID."""
     searchurl = TVDBAuth.tvdb_url + 'search/series?name='
@@ -89,26 +108,16 @@ class TvShow(object):
     episodenumber = seasonepnumber.split('E')[1].rstrip()
     return seriesname, seasonnumber, episodenumber
 
-
 def main():
   for (dirpath, dirname, filenames) in os.walk(sys.argv[1]):
     for filename in filenames:
       if filename.startswith('.'):
         pass
-      originalpath = sys.argv[1] + '/'
-      originalfile = os.path.basename(filename)
-      originalname, ext = os.path.splitext(originalfile)
+      tvshows = TvShow()
       if filename.endswith('- .mp4'):
-        tvshows = TvShow()
-        seriesabridged = tvshows.findnamefromfile(originalfile)
-        episode = tvshows.episodename(seriesabridged[0], seriesabridged[1],
-                                      seriesabridged[2])
-        if episode is None:
-          print 'Error found'
-        else:
-          print 'Renaming to - ', originalname + ' ' + episode + str(ext)
-          os.rename(originalpath + filename, originalpath + originalname
-                    + episode + str(ext))
+        tvshows.editcontroller(filename)
+      elif filename.endswith('.mp4') and filename.split('.mp4')[0] is not '':
+        tvshows.dotcontroller(filename)
 
 if __name__ == '__main__':
   main()

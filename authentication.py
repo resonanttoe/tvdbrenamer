@@ -8,6 +8,8 @@ import time
 import keyring
 import requests
 
+class NetworkError(ValueError):
+  pass
 
 class TvdbAuthToken(object):
   """Defines login schema and retrieves login/refresh token."""
@@ -38,6 +40,11 @@ class TvdbAuthToken(object):
         auth_header = {'Authorization': 'Bearer ' + originaltoken}
         print 'Obtaining REFRESH Token'
         token = requests.get(tvdb_url + 'refresh_token', headers=auth_header)
+        try:
+          token.raise_for_status()
+        except requests.exceptions.HTTPError:
+          print 'Network error %s' % token.status_code
+          raise
         finaltoken = json.loads(token.text)
       with open('.tvdbtoken.token', 'w') as tokenfile:
         tokenfile.write(finaltoken['token'])
@@ -51,6 +58,11 @@ class TvdbAuthToken(object):
         token = requests.post(tvdb_url + 'login',
                               data=json.dumps(self.login_schema()),
                               headers=headers)
+        try:
+          token.raise_for_status()
+        except requests.exceptions.HTTPError:
+          print 'Network error %s' % token.status_code
+          raise
         finaltoken = json.loads(token.text)
         tokenfile.write(finaltoken['token'])
 
@@ -62,6 +74,11 @@ class TvdbAuthToken(object):
         token = requests.post(tvdb_url + 'login',
                               data=json.dumps(self.login_schema()),
                               headers=headers)
+        try:
+          token.raise_for_status()
+        except requests.exceptions.HTTPError:
+          print 'Network error %s' % token.status_code
+          raise
         finaltoken = json.loads(token.text)
         tokenfile.write(finaltoken['token'])
 
