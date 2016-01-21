@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import json
 import os
 import sys
@@ -19,12 +20,24 @@ class TokenInvalidError(ValueError):
 class SeriesNotFoundError(ValueError):
   pass
 
+def parse_args(args):
+  parser = argparse.ArgumentParser()
+  parser.add_argument('inputdir', type=str,
+                      help='Input directory of files you want renamed')
+  parser.add_argument('-d', '--dev', help='Switches APIs to dev instances',
+                      action='store_true')
+  args = parser.parse_args()
+  return args
 
 class TVDBAuth(object):
-  tvdb_url = 'https://api-beta.thetvdb.com/'
+  parser = parse_args(sys.argv[1:])
+  if parser.dev:
+    tvdb_url = 'https://api-dev.thetvdb.com/'
+  else:
+    tvdb_url = 'https://api-beta.thetvdb.com/'
   tvdbheaders = {'content-type': 'application/json'}
   token = auth.TvdbAuthToken()
-  tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
+  tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken(tvdb_url)}
 
 
 class TvShow(object):
@@ -109,7 +122,8 @@ class TvShow(object):
     return seriesname, seasonnumber, episodenumber
 
 def main():
-  for (dirpath, dirname, filenames) in os.walk(sys.argv[1]):
+  parser = parse_args(sys.argv[1:])
+  for (dirpath, dirname, filenames) in os.walk(parser.inputdir):
     for filename in filenames:
       if filename.startswith('.'):
         pass
