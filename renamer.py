@@ -46,9 +46,9 @@ class TvShow(object):
     <Tvshow> - SxxExx -.mp4
   """
 
-  def editcontroller(self, filename):
+  def editcontroller(self, filename, dirpath):
     """Controller for files that match Title - SxxExx -.mp4 file name."""
-    originalpath = sys.argv[1] + '/'
+    originalpath = dirpath + '/'
     originalfile = os.path.basename(filename)
     originalname, ext = os.path.splitext(originalfile)
     seriesabridged = self.findnamefromfile(originalfile)
@@ -129,7 +129,8 @@ def main():
         pass
       tvshows = TvShow()
       if filename.endswith('- .mp4'):
-        tvshows.editcontroller(filename)
+        print filename, dirpath
+        tvshows.editcontroller(filename, dirpath)
       elif filename.endswith('.mp4') and filename.split('.mp4')[0] is not '':
         tvshows.dotcontroller(filename)
 
