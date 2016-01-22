@@ -20,6 +20,7 @@ class TokenInvalidError(ValueError):
 class SeriesNotFoundError(ValueError):
   pass
 
+
 def parse_args(args):
   parser = argparse.ArgumentParser()
   parser.add_argument('inputdir', type=str,
@@ -29,6 +30,7 @@ def parse_args(args):
   args = parser.parse_args()
   return args
 
+
 class TVDBAuth(object):
   parser = parse_args(sys.argv[1:])
   if parser.dev:
@@ -37,17 +39,24 @@ class TVDBAuth(object):
     tvdb_url = 'https://api-beta.thetvdb.com/'
   tvdbheaders = {'content-type': 'application/json'}
   token = auth.TvdbAuthToken()
-  tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken(tvdb_url)}
+  tvdbauth_header = {'Authorization': 'Bearer ' + \
+                     token.getrefreshtoken(tvdb_url)}
 
 
 class TvShow(object):
   """TvShow class queries TVDB.com for Show info.
+
   Input:
     <Tvshow> - SxxExx -.mp4
   """
 
   def editcontroller(self, filename, dirpath):
-    """Controller for files that match Title - SxxExx -.mp4 file name."""
+    """Controller for files that match Title - SxxExx -.mp4 file name.
+
+    Args:
+      filename: Input filename of Show.SxxExx.junk.mp4
+      dirpath: Full Directory path for rename purposes
+    """
     originalpath = dirpath + '/'
     originalfile = os.path.basename(filename)
     originalname, ext = os.path.splitext(originalfile)
@@ -62,12 +71,17 @@ class TvShow(object):
                 + episode + str(ext))
 
   def dotcontroller(self, filename, dirpath):
-    """Controller for files that match Title.SxxExx.Junk.mp4 file name."""
+    """Controller for files that match Title.SxxExx.Junk.mp4 file name.
+
+    Args:
+      filename: Input filename of Show.SxxExx.junk.mp4
+      dirpath: Full Directory path for rename purposes
+    """
     originalpath = dirpath + '/'
     originalfile = os.path.basename(filename)
     originalname, ext = os.path.splitext(originalfile)
     seriesabridged = self.findnamefromdot(originalfile)
-    if seriesabridged == None:
+    if seriesabridged is None:
       pass
     else:
       episode = self.episodename(seriesabridged[0], seriesabridged[1],
@@ -80,11 +94,20 @@ class TvShow(object):
         print 'Renaming to -', fulltitle
         os.rename(originalpath + filename, originalpath + fulltitle)
 
-
   def findnamefromdot(self, filename):
+    """Returns Title, Season number and Episode Name & number.
+
+    Args:
+      filename: The input filename of Show.SxxExx.junk.mp4
+    Returns:
+      title: <Showname>
+      season: <Season Number>
+      episode: <Episode number>
+    """
     filenamelist = filename.split('.')
     for sect in filenamelist:
-      if sect.startswith('S0') or sect.startswith('S1') or sect.startswith('S3'):
+      if sect.startswith('S0') or sect.startswith('S1') or \
+         sect.startswith('S3'):
         print sect
         delimiter = filenamelist.index(sect)
         episode = sect.split('E')[1]
@@ -94,11 +117,17 @@ class TvShow(object):
         return title, season, episode
       else:
         return None
-    
-
 
   def searchseries(self, seriesname):
-    """Searches for a series based on name, returns ID."""
+    """Searches for a series based on name, returns ID.
+
+    Args:
+      seriesname: The Seriesname by string to search on.
+    Returns:
+      seriesid: Numerical seriesid from TVDB.com.
+    Raises:
+      TokenInvalidError: If token is not found or expired.
+    """
     searchurl = TVDBAuth.tvdb_url + 'search/series?name='
     search = requests.get(searchurl + seriesname,
                           headers=TVDBAuth.tvdbauth_header)
@@ -113,6 +142,7 @@ class TvShow(object):
 
   def episodename(self, seriesname, season, episode):
     """Returns String of Episode name.
+
     Args:
       seriesname: Searches using searchseries() for SeriesID number
       season:  AiredSeason number
@@ -140,6 +170,7 @@ class TvShow(object):
 
   def findnamefromfile(self, inputfile):
     """Gets the series name, season and episode id from file name.
+
     Args:
       inputfile: Input must be in the form of Series - SXX - EXXX -.mp4.
     Returns:
@@ -152,6 +183,7 @@ class TvShow(object):
     seasonnumber = seasonepnumber.split('E')[0]
     episodenumber = seasonepnumber.split('E')[1].rstrip()
     return seriesname, seasonnumber, episodenumber
+
 
 def main():
   parser = parse_args(sys.argv[1:])
