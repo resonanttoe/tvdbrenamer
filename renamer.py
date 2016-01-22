@@ -61,9 +61,41 @@ class TvShow(object):
       os.rename(originalpath + filename, originalpath + originalname
                 + episode + str(ext))
 
-  def dotcontroller(self, filename):
+  def dotcontroller(self, filename, dirpath):
     """Controller for files that match Title.SxxExx.Junk.mp4 file name."""
-    pass
+    originalpath = dirpath + '/'
+    originalfile = os.path.basename(filename)
+    originalname, ext = os.path.splitext(originalfile)
+    seriesabridged = self.findnamefromdot(originalfile)
+    if seriesabridged == None:
+      pass
+    else:
+      episode = self.episodename(seriesabridged[0], seriesabridged[1],
+                                 seriesabridged[2])
+      fulltitle = seriesabridged[0] + ' - S' + seriesabridged[1] \
+                  + 'E' + seriesabridged[2] + ' - ' + episode + str(ext)
+      if episode is None:
+        print 'Error found'
+      else:
+        print 'Renaming to -', fulltitle
+        os.rename(originalpath + filename, originalpath + fulltitle)
+
+
+  def findnamefromdot(self, filename):
+    filenamelist = filename.split('.')
+    for sect in filenamelist:
+      if sect.startswith('S0') or sect.startswith('S1') or sect.startswith('S3'):
+        print sect
+        delimiter = filenamelist.index(sect)
+        episode = sect.split('E')[1]
+        season = sect.split('E')[0].strip('S')
+        titlelist = filenamelist[:delimiter]
+        title = ' '.join(titlelist)
+        return title, season, episode
+      else:
+        return None
+    
+
 
   def searchseries(self, seriesname):
     """Searches for a series based on name, returns ID."""
@@ -132,7 +164,7 @@ def main():
         print filename, dirpath
         tvshows.editcontroller(filename, dirpath)
       elif filename.endswith('.mp4') and filename.split('.mp4')[0] is not '':
-        tvshows.dotcontroller(filename)
+        tvshows.dotcontroller(filename, dirpath)
 
 if __name__ == '__main__':
   main()
