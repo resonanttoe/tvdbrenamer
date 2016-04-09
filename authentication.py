@@ -21,7 +21,7 @@ class TvdbAuthToken(object):
     if keyring.get_password('tvdbrenamer', username) is not None:
       password = keyring.get_password('tvdbrenamer', username)
     else:
-      password = getpass.getpass('TVDB.com Account Identifier:')
+      password = getpass.getpass('TVDB.com Password:')
       keyring.set_password('tvdbrenamer', username, password)
     logintoken = '{\n"apikey": ' + '"' + apikey + '"' + ',\n' \
                  '"username": ' + '"' + username + '"' +',\n' \
@@ -29,9 +29,8 @@ class TvdbAuthToken(object):
     return logintoken
 
 
-  def getrefreshtoken(self):
+  def getrefreshtoken(self, tvdb_url):
     """Get a JWT token or refreshes if it exists and is less than an hour."""
-    tvdb_url = 'https://api.thetvdb.com/'
     headers = {'content-type': 'application/json'}
     lastrefresh = 0
     if os.path.isfile('.tvdbtoken.token') is True:
@@ -86,5 +85,3 @@ class TvdbAuthToken(object):
         tokenfile.write(finaltoken['token'])
 
     return finaltoken['token']
-
-

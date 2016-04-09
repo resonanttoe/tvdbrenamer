@@ -32,23 +32,15 @@ def parse_args(args):
 
 
 class TVDBAuth(object):
-<<<<<<< HEAD
-  tvdb_url = 'https://api.thetvdb.com/'
-  tvdbheaders = {'content-type': 'application/json'}
-  token = auth.TvdbAuthToken()
-  tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
-  
-=======
   parser = parse_args(sys.argv[1:])
   if parser.dev:
     tvdb_url = 'https://api-dev.thetvdb.com/'
   else:
-    tvdb_url = 'https://api-beta.thetvdb.com/'
+    tvdb_url = 'https://api.thetvdb.com/'
   tvdbheaders = {'content-type': 'application/json'}
   token = auth.TvdbAuthToken()
   tvdbauth_header = {'Authorization': 'Bearer ' + \
                      token.getrefreshtoken(tvdb_url)}
->>>>>>> 35ee5852a225bfa62841ad302ae549f47ad6afeb
 
 
 class TvShow(object):
@@ -201,7 +193,7 @@ def main():
         pass 
       tvshows = TvShow()
       if filename.endswith('- .mp4'):
-        print filename, dirpath
+        print filename
         tvshows.editcontroller(filename, dirpath)
       elif filename.endswith('.mp4') and filename.split('.mp4')[0] is not '':
         tvshows.dotcontroller(filename, dirpath)
