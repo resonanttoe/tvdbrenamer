@@ -86,6 +86,9 @@ class testauthtokens(unittest.TestCase):
     result = tvshow.episodename('Red Dwarf')
     self.assertRaises(ValueError, result)
 
-
 if __name__ == '__main__':
-  unittest.main()
+  testcases = [KnownValues, BadInput, testauthtokens]
+  runner = unittest.TextTestRunner()
+  for test in testcases:
+    itersuite = unittest.TestLoader().loadTestsFromTestCase(test)
+    runner.run(itersuite)
