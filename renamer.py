@@ -21,10 +21,11 @@ class SeriesNotFoundError(ValueError):
 
 
 class TVDBAuth(object):
-  tvdb_url = 'https://api-beta.thetvdb.com/'
+  tvdb_url = 'https://api.thetvdb.com/'
   tvdbheaders = {'content-type': 'application/json'}
   token = auth.TvdbAuthToken()
   tvdbauth_header = {'Authorization': 'Bearer ' + token.getrefreshtoken()}
+  
 
 
 class TvShow(object):
@@ -45,8 +46,8 @@ class TvShow(object):
       print 'Error found'
     else:
       print 'Renaming to - ', originalname + ' ' + episode + str(ext)
-      os.rename(originalpath + filename, originalpath + originalname
-                + episode + str(ext))
+      print episode
+      os.rename(originalpath + filename, originalpath + originalname + episode + str(ext))
 
   def dotcontroller(self, filename):
     """Controller for files that match Title.SxxExx.Junk.mp4 file name."""
@@ -112,7 +113,7 @@ def main():
   for (dirpath, dirname, filenames) in os.walk(sys.argv[1]):
     for filename in filenames:
       if filename.startswith('.'):
-        pass
+        pass 
       tvshows = TvShow()
       if filename.endswith('- .mp4'):
         tvshows.editcontroller(filename)

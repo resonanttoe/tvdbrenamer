@@ -21,14 +21,17 @@ class TvdbAuthToken(object):
     if keyring.get_password('tvdbrenamer', username) is not None:
       password = keyring.get_password('tvdbrenamer', username)
     else:
-      password = getpass.getpass('TVDB.com Password:')
+      password = getpass.getpass('TVDB.com Account Identifier:')
       keyring.set_password('tvdbrenamer', username, password)
-    return {'apikey': apikey, 'username': username, 'userpass': str(password)}
+    logintoken = '{\n"apikey": ' + '"' + apikey + '"' + ',\n' \
+                 '"username": ' + '"' + username + '"' +',\n' \
+                 '"userkey": ' + '"' + str(password) + '"\n}'
+    return logintoken
 
 
   def getrefreshtoken(self):
     """Get a JWT token or refreshes if it exists and is less than an hour."""
-    tvdb_url = 'https://api-beta.thetvdb.com/'
+    tvdb_url = 'https://api.thetvdb.com/'
     headers = {'content-type': 'application/json'}
     lastrefresh = 0
     if os.path.isfile('.tvdbtoken.token') is True:
@@ -56,7 +59,7 @@ class TvdbAuthToken(object):
         originaltoken = tokenfile.read().rstrip('\n')
         print 'Obtaining NEW token'
         token = requests.post(tvdb_url + 'login',
-                              data=json.dumps(self.login_schema()),
+                              data=self.login_schema(),
                               headers=headers)
         try:
           token.raise_for_status()
@@ -72,7 +75,7 @@ class TvdbAuthToken(object):
         originaltoken = tokenfile.read().rstrip('\n')
         print 'Obtaining NEW token and writing to file'
         token = requests.post(tvdb_url + 'login',
-                              data=json.dumps(self.login_schema()),
+                              data=self.login_schema(),
                               headers=headers)
         try:
           token.raise_for_status()
@@ -83,3 +86,5 @@ class TvdbAuthToken(object):
         tokenfile.write(finaltoken['token'])
 
     return finaltoken['token']
+
+
